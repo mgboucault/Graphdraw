@@ -6,3 +6,5 @@ Ce travail résulte de notre stage d'un mois au Département de Traitement de l'
 Ce placement de graphe repose sur l'algorithme de Sugiyama.
 
 Quant à la partie graphique, elle utilise les modules Graphics et Graphicspdf d'Ocaml.
+
+Pour l'utilisation, entrez votre graphe dans le fichier main.ml et compilez à l'aide du makefile, puis tapez ./graphdraw dans le terminal
