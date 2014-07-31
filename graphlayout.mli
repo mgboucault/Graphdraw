@@ -1,4 +1,7 @@
-open Graphdrawpdf
+(*Copyright 2014 Marcel-Georges BOUCAULT & Frank WANG*)
+
+
+open Types
 
 
 (** Sugiyama algorithm **)
@@ -172,5 +175,7 @@ val remove_empty_vertex : vertex list ref -> unit
 
 val add_link_list : (string * string) list -> vertex list -> vertex list
 (*let verifier graph = List.map (fun v -> (v.name , v.abscissa , v.ordinate)) graph;;*)
+
+val vertex_sinks : (string * 'a) list -> vertex list
 
 val graph_layout : (string * string) list -> vertex list
