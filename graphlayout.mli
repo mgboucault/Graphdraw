@@ -128,7 +128,7 @@ val change_layer00 : (string * int * int) list -> vertex list ref -> unit
 (** III-b Ajouter les noeuds virtuels dans un graphe vertex **)
 
 (*Ajoute les noeuds virtuels dans la liste de vertex*)
-val add_dummy : vertex list ref -> unit list
+val add_dummy : vertex list ref -> unit
 
 
 (** III-d Crossing reduce **)
