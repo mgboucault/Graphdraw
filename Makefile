@@ -4,7 +4,7 @@ LIBS = -package graphicspdf,graphics -linkpkg
 
 
 $(EXEC) : types.cmo makegraphics.cmo graphdrawpdf.cmo graphlayout.cmo graphdraw.cmo main.cmo
-	$(COMPILO) $(LIBS) -o graphdraw types.cmo makegraphics.cmo graphdrawpdf.cmo graphlayout.cmo graphdraw.cmo main.cmo
+	$(COMPILO) $(LIBS) -o $(EXEC) types.cmo makegraphics.cmo graphdrawpdf.cmo graphlayout.cmo graphdraw.cmo main.cmo
 
 types.cmo : types.ml
 	$(COMPILO) $(LIBS) -c types.ml
