@@ -2,8 +2,7 @@
 
 
 open Graphics
-open Graphdrawpdf
-open Graphlayout
+open Types
 
 
 exception End
@@ -39,18 +38,6 @@ val scale : vertex list -> unit
 
 (**fonction rétablissant les coordonnées des noeuds**)
 val unscale : vertex list -> unit
-
-
-(**fonction dessinant les noeuds**)
-val draw_vertices : vertex list -> unit
-				
-					
-(**fonction dessinant les flèches**)
-val draw_edges : vertex list -> unit			
-         
-
-(**fonction dessinant et reliant les ports**)
-val draw_ports : port list -> vertex list -> unit
 
 
 (**fonction permettant de remettre le graphe à zéro**)
