@@ -22,7 +22,7 @@ let () =
 	(* Entrez votre graphe sous forme d'une liste de lien *)
 	(* exemple : si votre graphe contient un arc orienté de a vers b, il faut mettre le couple ("a", "b") dans la liste de lien *)
 	(* Note : il est possible de rajouter des noeuds ultérieurement *)
-	let graph = [("a","b");("b","c");("c","a");("d","e");("e","f");("f","d");("c","d")] in
+	let graph =  [("a","b");("b","c");("c","a");("c","d");("d","e");("d","f");("e","h");("f","l");("b","n");("n","o");("n","p");("h","i");("h","j");("h","k");("l","k");("k","m")]  in
 
 
 	graph_draw graph_title port_list graph ;;
