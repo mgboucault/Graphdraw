@@ -1,4 +1,7 @@
-open Graphdrawpdf;;
+(*Copyright 2014 Marcel-Georges BOUCAULT & Frank WANG*)
+
+
+open Types;;
 
                                                               (** Sugiyama algorithm **)
 
@@ -214,7 +217,8 @@ let occurrence_fleches  liste_lien=
 	
 (**  Permet de retourner des flèches pour rendre le graphe acyclique         
      heuristique: on inverse les flèche qui influencent le plus de cycles  *)
-let rec cycle_removal liste_lien =
+let  cycle_removal liste_lien =
+let rec cycle_removal' liste_lien =
   (*Permet de modifier un graphe (en liste de lien ) en entrant le couple à inverser*)
   let rec modifier_fleche liste_lien couple=(
   	match (liste_lien,couple) with
@@ -229,8 +233,10 @@ let rec cycle_removal liste_lien =
   	|0 -> (liste_lien,[])
   	|_ -> match (occurrence_fleches liste_lien) with
   					|[]         -> (liste_lien,[])
-  					|(a,b,n)::t -> let resultat=cycle_removal (modifier_fleche liste_lien (a,b)) in 												
+  					|(a,b,n)::t -> let resultat=cycle_removal' (modifier_fleche liste_lien (a,b)) in 												
   													(fst resultat , (b,a)::( snd resultat))	
+in
+match cycle_removal' liste_lien with |(a,b)->(no_occ a,no_occ b)
 ;; 
 
                                                                           (** II  : Layering **)
@@ -397,7 +403,7 @@ let vertex_of_graph' liste_lien=
 	let graph0 = placement_h0 (layering liste_lien) in
 	
 	(*initialisation de la liste de vertex *)
-	let graph1= List.map ( fun (nom,x,y)-> {name=nom; next_vertices = []; abscissa= x; ordinate= y; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf.yellow; edge_width = 1; edge_color = Graphicspdf.green}}) graph0 in
+	let graph1= List.map ( fun (nom,x,y)-> {name=nom; next_vertices = []; abscissa= x; ordinate= y; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf. white; edge_width = 1; edge_color = Graphicspdf.black}}) graph0 in
 	
 	(*permet de trouver le vertex tq vertex.name = nom de la liste *)
 	let vert list_of_vertex nom = List.find (fun v-> v.name=nom) list_of_vertex in 
@@ -551,7 +557,7 @@ Permet d'avoir plusieurs empty vertex au même endroit
 let rec change_layer00 liste p_list_of_vertex=
 			match liste with
 					|[]->()
-					|(nom,x,y)::t -> ( move {name=nom; next_vertices=[] ; abscissa = x; ordinate = y; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf.yellow; edge_width = 1; edge_color = Graphicspdf.green}} (-x) y p_list_of_vertex ;
+					|(nom,x,y)::t -> ( move {name=nom; next_vertices=[] ; abscissa = x; ordinate = y; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf. white; edge_width = 1; edge_color = Graphicspdf.black}} (-x) y p_list_of_vertex ;
             change_layer00 t p_list_of_vertex)
 ;;
 
@@ -583,7 +589,7 @@ let add_dummy p_list_of_vertex =
 				else (
 				let liste_largeur =  ( absc vertex.next_vertices (vertex.ordinate-2) )in
 				vertex.next_vertices <- List.map (fun (vertex_fils,n)-> if vertex.ordinate-vertex_fils.ordinate = 1 then  (add_dummy_h p_info vertex_fils;vertex_fils)
-												else (let empt={name="empty_vertex";next_vertices = [vertex_fils];abscissa = n; ordinate = (vertex.ordinate-1); draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf.yellow; edge_width = 1; edge_color = Graphicspdf.green}} in
+												else (let empt={name="empty_vertex";next_vertices = [vertex_fils];abscissa = n; ordinate = (vertex.ordinate-1); draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf. white; edge_width = 1; edge_color = Graphicspdf.black}} in
 												 add_end empt p_list_of_vertex ; add_dummy_h p_info empt ;empt)
 												) liste_largeur )
 	
@@ -655,7 +661,7 @@ let less_crossing p_list_of_vertex =
 					|[]->()
 					|(nom,x,y)::t -> (  
 							p_compteur:=(!p_compteur+1);
-							move {name=nom; next_vertices=[] ; abscissa = -x; ordinate = y; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf.yellow; edge_width = 1; edge_color = Graphicspdf.green}} !p_compteur y p_list_of_vertex ;
+							move {name=nom; next_vertices=[] ; abscissa = -x; ordinate = y; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf. white; edge_width = 1; edge_color = Graphicspdf.black}} !p_compteur y p_list_of_vertex ;
 							change_layer t p_list_of_vertex
 							);
 		)in	
@@ -682,7 +688,7 @@ let less_crossing' p_list_of_vertex=
 					|[]->()
 					|(nom,x,y)::t -> (  
 							(p_compteur:=(!p_compteur+1);
-							move {name=nom; next_vertices=[] ; abscissa = -x; ordinate = y; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf.yellow; edge_width = 1; edge_color = Graphicspdf.green}} !p_compteur y p_list_of_vertex );
+							move {name=nom; next_vertices=[] ; abscissa = -x; ordinate = y; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf. white; edge_width = 1; edge_color = Graphicspdf.black}} !p_compteur y p_list_of_vertex );
 							change_layer t p_list_of_vertex
 							);
 		)in	
@@ -772,8 +778,8 @@ let center_fixed_son p_list_of_vertex y =
 
       let etage = verifier (List.fast_sort ( fun ((name0, x0,y0),n0) ((name1, x1,y1),n1)-> n0-n1) etage) in
 
-      List.hd (List.map (fun ((vertex_name, x,y),_    )-> move {name=vertex_name;next_vertices=[];abscissa=  x ;ordinate=y; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf.yellow; edge_width = 1; edge_color = Graphicspdf.green}} (-x)        y p_list_of_vertex) etage);
-      List.hd (List.map (fun ((vertex_name, x,y),n)-> move {name=vertex_name;next_vertices=[];abscissa=(-x);ordinate=y; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf.yellow; edge_width = 1; edge_color = Graphicspdf.green}} n y p_list_of_vertex) etage)
+      List.hd (List.map (fun ((vertex_name, x,y),_    )-> move {name=vertex_name;next_vertices=[];abscissa=  x ;ordinate=y; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf. white; edge_width = 1; edge_color = Graphicspdf.black}} (-x)        y p_list_of_vertex) etage);
+      List.hd (List.map (fun ((vertex_name, x,y),n)-> move {name=vertex_name;next_vertices=[];abscissa=(-x);ordinate=y; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf. white; edge_width = 1; edge_color = Graphicspdf.black}} n y p_list_of_vertex) etage)
       )
 ;;
 
@@ -861,8 +867,8 @@ let center_fixed_father p_list_of_vertex y=
       (*Utilisation de véridfier*)
       let etage = verifier (List.fast_sort ( fun ((name0, x0,y0),n0) ((name1, x1,y1),n1)-> n0-n1) etage) in
 
-      List.hd (List.map (fun ((vertex_name, x,y),_)-> move {name=vertex_name;next_vertices=[];abscissa=  x ;ordinate=y; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf.yellow; edge_width = 1; edge_color = Graphicspdf.green}} (-x) y p_list_of_vertex) etage);
-      List.hd (List.map (fun ((vertex_name, x,y),n)-> move {name=vertex_name;next_vertices=[];abscissa=(-x);ordinate=y; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf.yellow; edge_width = 1; edge_color = Graphicspdf.green}}   n  y p_list_of_vertex) etage)
+      List.hd (List.map (fun ((vertex_name, x,y),_)-> move {name=vertex_name;next_vertices=[];abscissa=  x ;ordinate=y; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf. white; edge_width = 1; edge_color = Graphicspdf.black}} (-x) y p_list_of_vertex) etage);
+      List.hd (List.map (fun ((vertex_name, x,y),n)-> move {name=vertex_name;next_vertices=[];abscissa=(-x);ordinate=y; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf. white; edge_width = 1; edge_color = Graphicspdf.black}}   n  y p_list_of_vertex) etage)
       )
 ;;
 
@@ -1045,44 +1051,65 @@ let rec change_arrow list_of_arrow p_list_of_vertex=
 (**Permet d'ajouter les lien donnés par une liste de fleche*)
 let rec add_link_list liste list_of_vertex=
   
-  let add_link (a,b) list_of_vertex=
+  let add_link (a,b) list_of_vertex=(
   
-    let rec add_link' nom vertex list_of_vertex=
+    let rec add_link' nom vertex list_of_vertex=(
     match list_of_vertex with
       |[]->()
       |h_vertex::t_vertices -> if (h_vertex.name=nom) then h_vertex.next_vertices <-vertex::h_vertex.next_vertices
-    in
+                                else add_link' nom vertex t_vertices
+    )in
     
-    let vertexb=List.find (fun v-> v.name=b) list_of_vertex in
-    add_link' a vertexb list_of_vertex;
-  in
+    if list_of_vertex=[] then ()
+    else(
+      let vertexb=List.find (fun v-> v.name=b) list_of_vertex in
+      add_link' a vertexb list_of_vertex;
+    )
+  )in
 
   match liste with
     |[]->list_of_vertex
     |h::t-> (add_link h list_of_vertex;add_link_list t list_of_vertex)
 ;;
+
 (**fonction qui convertie une liste de lien en liste de vertices 
    marche pour graphe cyclique*)
-
+let vertex_sinks list_of_sinks =
+  let i = ref 1 in
+  let j = ref 0 in
+  let rec vertex_sinks' list_of_sinks l_out =
+    match list_of_sinks with
+      |[]->l_out
+      |h::t -> (if !i>1 then (i:=!i-1;j:=!j+1) else (i:= !i + !j+1;j:=1); vertex_sinks' t 
+      ({name=fst h;next_vertices=[];abscissa= !i;ordinate= !j; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf. white; edge_width = 1; edge_color = Graphicspdf.black}}::l_out))
+  in
+  let list_of_vertex = vertex_sinks' list_of_sinks [] in
+  List.map (fun v-> (v.next_vertices<-[v];v)) list_of_vertex
+;;
 
 let vertex_of_graph liste_lien =
-
+  
    let vertex_of_graph'' liste_lien =
-    if liste_lien=[] then []
-    else
+    match liste_lien with
+      |[] -> []
+      |liste_lien''->
       (
-      let liste_lien'= cycle_removal liste_lien in
+      let liste_lien'= cycle_removal liste_lien'' in
       let graph = ref (vertex_of_graph' (fst liste_lien')) in
+      let list0 =List.filter (fun x-> List.mem x liste_lien) (snd liste_lien') in
       change_arrow (snd liste_lien') graph;
-      !graph
+      add_link_list list0 !graph
+
       )
   in
   
+  (*on sépare les noeuds qui boucles sur eux même *)
   let list1=List.partition (fun (a,b)->a<>b) liste_lien in 
   let list2=snd list1 in
   let list1=fst list1 in
   
-  let list1 =if list1 <> [] then list1 else (List.map (fun (a,b)->(a,"empty_vertex")) list2)@(List.map (fun (a,b)->("empty_vertex",a)) list2)in
+  if list1 = [] then vertex_sinks list2 
+  else(
       let list_of_vertex0 = vertex_of_graph'' list1 in
 
       let rec add_son list_of_vertex nom =
@@ -1093,6 +1120,7 @@ let vertex_of_graph liste_lien =
       if list2=[]then()
       else (List.hd (List.map (fun(nom,nom') -> add_son list_of_vertex0 nom) list2));
       list_of_vertex0
+      )
 ;;
 (**IV- c: Fonction de trie / creation finale **)
 
@@ -1105,11 +1133,14 @@ let graph_layout graphe=
     let graph  = List.partition (fun (a,b)-> a<>b) graphe in
     let graph0 = snd graph in
     let graph  = fst graph in
-  
+    
+    if graph=[] then vertex_sinks graph0 
+    else(
+    
     (*Supprimer les cycles et garder les flèches modifiées en mémoire*)
     let graph_a=cycle_removal graph in 
     (* liste des flèches modifiées*)
-    let graph_a_fleche =snd  graph_a in
+    let graph_a_fleche = snd  graph_a in
     (* Creation du graph acyclique *)
     let graph_a=fst graph_a in
     (* Liste des flèches à rajouter:
@@ -1140,10 +1171,10 @@ let graph_layout graphe=
     change_arrow graph_a_fleche graph_w;
     
     (*Permet de remettre les flèches supprimées*)
-    graph_w := if graph_b<>[] then add_link_list graph_b !graph_w
+    graph_w := if graph_b<>[] then (print_int 1;add_link_list graph_b !graph_w)
     else !graph_w;
     
-    if graph0<>[] then add_link_list graph0 !graph_w
-    else !graph_w;
+    add_link_list graph0 !graph_w
+      )
     )
 ;;
