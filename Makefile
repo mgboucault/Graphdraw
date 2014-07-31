@@ -3,9 +3,15 @@ COMPILO = ocamlfind ocamlc
 LIBS = -package graphicspdf,graphics -linkpkg
 
 
-$(EXEC) : graphdrawpdf.cmo graphlayout.cmo graphdraw.cmo main.cmo
-	$(COMPILO) $(LIBS) -o graphdraw graphdrawpdf.cmo graphlayout.cmo graphdraw.cmo main.cmo
+$(EXEC) : types.cmo makegraphics.cmo graphdrawpdf.cmo graphlayout.cmo graphdraw.cmo main.cmo
+	$(COMPILO) $(LIBS) -o graphdraw types.cmo makegraphics.cmo graphdrawpdf.cmo graphlayout.cmo graphdraw.cmo main.cmo
 
+types.cmo : types.ml
+	$(COMPILO) $(LIBS) -c types.ml
+
+makegraphics.cmo : makegraphics.ml
+	$(COMPILO) $(LIBS) -c makegraphics.ml
+	
 graphdrawpdf.cmo : graphdrawpdf.mli graphdrawpdf.ml
 	$(COMPILO) $(LIBS) -c graphdrawpdf.mli
 	$(COMPILO) $(LIBS) -c graphdrawpdf.ml
