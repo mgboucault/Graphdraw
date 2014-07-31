@@ -412,10 +412,12 @@ let vertex_of_graph' liste_lien=
 				vertex_of_graph_bis' t list_of_vertex 
 			)
 	in
-	
-	let ordonner_tb graph_tab= List.fast_sort (fun (nom1,l1) (nom2,l2) -> (List.length l1)- (List.length l2) ) graph_tab in
-	vertex_of_graph_bis' (ordonner_tb (table liste_lien)) graph1;
-	graph1
+	if liste_lien=[] then []
+	else(
+	  let ordonner_tb graph_tab= List.fast_sort (fun (nom1,l1) (nom2,l2) -> (List.length l1)- (List.length l2) ) graph_tab in
+	  vertex_of_graph_bis' (ordonner_tb (table liste_lien)) graph1;
+	  graph1
+	)
 ;;
 
 (** III-b Réduction des chemins    **)
@@ -474,7 +476,7 @@ Permet de faire remonter des chemains sans boucle
 let reduce_path p_list_of_vertex =
 
   (*fonction qui vérifie si le vertex mène vers un chemin sans boucle ou séparation*)
-  let rec lone_path vertex vertex_before list_of_vertex =
+  let rec lone_path vertex vertex_before list_of_vertex =(
     match (List.filter (fun v-> (v.ordinate=vertex.ordinate+1)&&(List.mem vertex v.next_vertices)) list_of_vertex) with 
       |[] -> (match vertex.next_vertices with
                 |[vertex0]-> (if vertex0= vertex_before then true else false)
@@ -485,24 +487,29 @@ let reduce_path p_list_of_vertex =
                        else if vertex5=vertex_before then lone_path vertex4 vertex list_of_vertex
                        else false
       |_->false
-  in
+  )in
   (*fonction qui calcul le noeud pere le plus proche 
   filtre les chemins sans boucle/séparation pour les remonter*)
-  let n_up vertex p_list_of_vertex=
+  let n_up vertex p_list_of_vertex=(
     let resultat =List.fast_sort (fun v1 v2 -> v1.ordinate-v2.ordinate) 
     (List.filter (fun v -> not(lone_path v vertex (!p_list_of_vertex)) ) 
     (List.filter (fun v -> List.mem vertex v.next_vertices) !p_list_of_vertex)) in
     if resultat= [] then (vertex.ordinate+1) else   (List.hd resultat).ordinate
-  in
+  )in
 
   (*permet de remonter les noeuds à la nouvelle positions calculée*)
-  ordonner p_list_of_vertex;
-  p_list_of_vertex:=List.rev !p_list_of_vertex;
-  List.hd (List.map (fun v-> (
-      let nb=n_up v p_list_of_vertex in
-      if nb = v.ordinate+1 then ()
-      else (move v (1) (nb-1) p_list_of_vertex) 
-  ) ) !p_list_of_vertex);
+  if !p_list_of_vertex=[] then () 
+  else (
+
+    ordonner p_list_of_vertex;
+    p_list_of_vertex:=List.rev !p_list_of_vertex;
+    
+    List.hd (List.map (fun v-> (
+        let nb=n_up v p_list_of_vertex in
+        if nb = v.ordinate+1 then ()
+        else (move v (1) (nb-1) p_list_of_vertex) 
+    ) ) !p_list_of_vertex);
+  
 
   
   (*pemet de verifier s'il n'y a pas de noeuds_pere sous un de ses noeuds fils *)
@@ -514,6 +521,7 @@ let reduce_path p_list_of_vertex =
                       else ()
                       )) !p_list_of_vertex  
     );
+  );
     (*pemet de verifier que chaque noeud a une position distincte *)
     let verifier list_of_vertex p_list_of_vertex=(
     
@@ -580,8 +588,8 @@ let add_dummy p_list_of_vertex =
 												) liste_largeur )
 	
 	)in
-
-	List.map (add_dummy_h p_info) !p_list_of_vertex
+  if !p_list_of_vertex=[]then ()
+  else List.hd (	List.map (add_dummy_h p_info) !p_list_of_vertex)
 ;; 
 
 
@@ -1033,38 +1041,7 @@ let rec change_arrow list_of_arrow p_list_of_vertex=
                           change_arrow t_arrow p_list_of_vertex)
 ;;
 
-(**fonction qui convertie une liste de lien en liste de vertices 
-   marche pour graphe cyclique*)
 
-
-let vertex_of_graph liste_lien =
-
-   let vertex_of_graph'' liste_lien =
-    if liste_lien=[] then []
-    else
-      (
-      let liste_lien'= cycle_removal liste_lien in
-      let graph = ref (vertex_of_graph' (fst liste_lien')) in
-      change_arrow (snd liste_lien') graph;
-      !graph
-      )
-  in
-  
-  let list1=List.partition (fun (a,b)->a<>b) liste_lien in
-  let list2=snd list1 in
-  let list1=fst list1 in
-
-  let list_of_vertex0 = vertex_of_graph'' list1 in
-
-  let rec add_son list_of_vertex nom =
-    let vertex= List.find (fun v->v.name=nom) list_of_vertex in
-    vertex.next_vertices <- vertex.next_vertices@[vertex]
-  in
-
-  if list2=[]then()
-  else (List.hd (List.map (fun(nom,nom') -> add_son list_of_vertex0 nom) list2));
-  list_of_vertex0
-;;
 (**Permet d'ajouter les lien donnés par une liste de fleche*)
 let rec add_link_list liste list_of_vertex=
   
@@ -1084,46 +1061,89 @@ let rec add_link_list liste list_of_vertex=
     |[]->list_of_vertex
     |h::t-> (add_link h list_of_vertex;add_link_list t list_of_vertex)
 ;;
+(**fonction qui convertie une liste de lien en liste de vertices 
+   marche pour graphe cyclique*)
 
+
+let vertex_of_graph liste_lien =
+
+   let vertex_of_graph'' liste_lien =
+    if liste_lien=[] then []
+    else
+      (
+      let liste_lien'= cycle_removal liste_lien in
+      let graph = ref (vertex_of_graph' (fst liste_lien')) in
+      change_arrow (snd liste_lien') graph;
+      !graph
+      )
+  in
+  
+  let list1=List.partition (fun (a,b)->a<>b) liste_lien in 
+  let list2=snd list1 in
+  let list1=fst list1 in
+  
+  let list1 =if list1 <> [] then list1 else (List.map (fun (a,b)->(a,"empty_vertex")) list2)@(List.map (fun (a,b)->("empty_vertex",a)) list2)in
+      let list_of_vertex0 = vertex_of_graph'' list1 in
+
+      let rec add_son list_of_vertex nom =
+        let vertex= List.find (fun v->v.name=nom) list_of_vertex in
+        vertex.next_vertices <- vertex.next_vertices@[vertex]
+      in
+
+      if list2=[]then()
+      else (List.hd (List.map (fun(nom,nom') -> add_son list_of_vertex0 nom) list2));
+      list_of_vertex0
+;;
 (**IV- c: Fonction de trie / creation finale **)
 
 let graph_layout graphe=
+  
   if List.length graphe <= 1 then (vertex_of_graph graphe)
   else (
-  (*Supprimer les cycles et garder les flèches modifiées en mémoire*)
-  let graph_a=cycle_removal (List.filter (fun (a,b)-> a<>b) graphe) in 
-  (* liste des flèches modifiées*)
-  let graph_a_fleche =snd  graph_a in
-  (* Creation du graph acyclique *)
-  let graph_a=fst graph_a in
-  (* Liste des flèches à rajouter *)
-  let graph_b=List.filter (fun x-> List.mem x graphe) graph_a_fleche in
-  
-  (* traduction en liste de vertex *)
-  let graph_vv=vertex_of_graph graph_a in 
-  let graph_w=ref graph_vv in
-
-  (* Reduction des empty_vertex en remontant certains noeuds*)
-  reduce_path graph_w ; 
    
-  (* Ajout des noeuds virtuels*)
-  List.hd (add_dummy graph_w); 
-
-  (* Reduction des croisements (grossier) *)
-  less_crossing' graph_w;
-  less_crossing graph_w;
-
-  (*Reduction des croisements + centrer le graphe *)
-  center graph_w;
+    (*On recupère les noeuds qui pointent sur eux même*)
+    let graph  = List.partition (fun (a,b)-> a<>b) graphe in
+    let graph0 = snd graph in
+    let graph  = fst graph in
   
-  (*Permet de supprimer les empty_vertex aligné*)
-  remove_empty_vertex graph_w;
+    (*Supprimer les cycles et garder les flèches modifiées en mémoire*)
+    let graph_a=cycle_removal graph in 
+    (* liste des flèches modifiées*)
+    let graph_a_fleche =snd  graph_a in
+    (* Creation du graph acyclique *)
+    let graph_a=fst graph_a in
+    (* Liste des flèches à rajouter:
+       lors de l'inverion des flèches certines sont supprimées *)
+    let graph_b=List.filter (fun x-> List.mem x graphe) graph_a_fleche in
+  
+    (* traduction en liste de vertex *)
+    let graph_vv=vertex_of_graph graph_a in 
+    let graph_w=ref graph_vv in
 
-  (*Remettre les cycles *)
-  change_arrow graph_a_fleche graph_w;
-  if graph_b<>[] then add_link_list graph_b !graph_w
-  else !graph_w
-  )
-  (*sortie de la fonction
-  !graph_w*)
+    (* Reduction des empty_vertex en remontant certains noeuds*)
+    reduce_path graph_w ; 
+   
+    (* Ajout des noeuds virtuels*)
+    add_dummy graph_w;
+
+    (* Reduction des croisements (grossier) *)
+    less_crossing' graph_w;
+    less_crossing graph_w;
+
+    (*Reduction des croisements + centrer le graphe *)
+    center graph_w;
+  
+    (*Permet de supprimer les empty_vertex aligné*)
+    remove_empty_vertex graph_w;
+
+    (*Permet de remettre les cycles *)
+    change_arrow graph_a_fleche graph_w;
+    
+    (*Permet de remettre les flèches supprimées*)
+    graph_w := if graph_b<>[] then add_link_list graph_b !graph_w
+    else !graph_w;
+    
+    if graph0<>[] then add_link_list graph0 !graph_w
+    else !graph_w;
+    )
 ;;
