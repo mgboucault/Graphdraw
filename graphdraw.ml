@@ -2,11 +2,14 @@
 
 
 open Graphics;;
-open Graphdrawpdf;;
-open Graphlayout;;
+open Types;;
 
 
 exception End;;
+
+
+(**Définition des fonctions GraphDraw.draw_vertices, GraphDraw.draw_edges et GraphDraw.draw_ports**)
+module GraphDraw = Makegraphics.Make (Graphics);;
 
 
 (**fonction ouvrant la fenêtre**)
@@ -94,7 +97,13 @@ let init () =
 	let (w,h) = text_size "Reset" in
 	moveto (w/2) (h/2);
 	draw_rect 0 0 (2*w) (2*h);
-	draw_string "Reset";;
+	draw_string "Reset";
+	(*bouton "Erase all"*)
+	set_color black;
+	let (w,h) = text_size "Erase all" in
+	moveto (7*w_case - 7*w/6) (h/2);
+	draw_rect (7*w_case - 4*w/3) 0 (4*w/3) (2*h);
+	draw_string "Erase all";;
 
 
 (**fonction initialisant la fenêtre lors du choix d'options pour les noeuds**)
@@ -460,224 +469,6 @@ let unscale vertices =
 		vertex.ordinate <- vertex.ordinate / !hauteur_min;
 	in
 	List.iter f vertices;;
-			
-
-(**fonction dessinant les noeuds**)
-let rec draw_vertices vertices =
-	set_line_width 1;
-	match vertices with
-		|[] -> ()
-		|h_vertex::t_vertices ->
-			(*si on a un empty_vertex, on trace un petit carré et on passe à l'élément suivant*)
-			if h_vertex.name = "empty_vertex" then 
-				(set_color h_vertex.draw.vertex_color;
-				fill_rect (h_vertex.abscissa-2) (h_vertex.ordinate-2) 4 4;
-				draw_vertices t_vertices)
-			(*sinon, on trace le noeud selon sa forme que l'on adapte au texte*)
-			else
-				let x = h_vertex.abscissa in
-				let y = h_vertex.ordinate in
-				let (w,h) = text_size h_vertex.name in
-				set_color white;
-				fill_rect (x - 2 * w/3) (y - h) (4 * w/3) (2 * h);
-				set_color h_vertex.draw.vertex_color;
-				match h_vertex.draw.vertex_shape with
-					|Rectangle ->
-						fill_rect (x - 2 * w/3) (y - h) (4 * w/3) (2 * h);
-						set_color black;
-						draw_rect (x - 2 * w/3) (y - h) (4 * w/3) (2 * h);
-						moveto (x - w/2) (y - h/2);
-						draw_string h_vertex.name;
-						draw_vertices t_vertices
-					|Ellipse -> 
-						fill_ellipse x y (2 * w/3) h;
-						set_color black;
-						draw_ellipse x y (2 * w/3) h;
-						moveto (x - w/2) (y - h/2);
-						draw_string h_vertex.name;
-						draw_vertices t_vertices
-					|Hexagon -> 
-						let hexagon = [|(x-2*w/3,y);(x-w/2,y+h);(x+w/2,y+h);(x+2*w/3,y);(x+w/2,y-h);(x-w/2,y-h)|] in
-						fill_poly hexagon;
-						set_color black;
-						draw_poly hexagon;
-						moveto (x - w/2) (y - h/2);
-						draw_string h_vertex.name;
-						draw_vertices t_vertices
-					| Parallelogram -> 
-						let parallelogram = [|(x-w/2,y+h);(x+2*w/3,y+h);(x+w/2,y-h);(x-2*w/3,y-h)|] in
-						fill_poly parallelogram;
-						set_color black;
-						draw_poly parallelogram;
-						moveto (x - w/2) (y - h/2);
-						draw_string h_vertex.name;
-						draw_vertices t_vertices
-					| Parallelogram_inv -> 
-						let parallelogram_inv = [|(x-2*w/3,y+h);(x+w/2,y+h);(x+2*w/3,y-h);(x-w/2,y-h)|] in
-						fill_poly parallelogram_inv;
-						set_color black;
-						draw_poly parallelogram_inv;
-						moveto (x - w/2) (y - h/2);
-						draw_string h_vertex.name;
-						draw_vertices t_vertices
-					|Trapezoid -> 
-						let trapezoid = [|(x-w/2,y+h);(x+w/2,y+h);(x+2*w/3,y-h);(x-2*w/3,y-h)|] in
-						fill_poly trapezoid;
-						set_color black;
-						draw_poly trapezoid;
-						moveto (x - w/2) (y - h/2);
-						draw_string h_vertex.name;
-						draw_vertices t_vertices
-					|Trapezoid_inv -> 
-						let trapezoid_inv = [|(x-2*w/3,y+h);(x+2*w/3,y+h);(x+w/2,y-h);(x-w/2,y-h)|] in
-						fill_poly trapezoid_inv;
-						set_color black;
-						draw_poly trapezoid_inv;
-						moveto (x - w/2) (y - h/2);
-						draw_string h_vertex.name;
-						draw_vertices t_vertices;;
-					
-					
-(**fonction dessinant les flèches**)				
-let rec draw_edges vertices =
-	match vertices with
-		|[] -> ()
-		|h_vertex::t_vertices -> (
-			set_line_width h_vertex.draw.edge_width;
-			set_color h_vertex.draw.edge_color;
-			let (x1, y1) = (h_vertex.abscissa, h_vertex.ordinate) in
-			let (w1,h1) = text_size h_vertex.name in
-			(*si on a un empty_vertex, on trace une droite à partir de (x1, y1)*)
-			if h_vertex.name = "empty_vertex" then (
-				if h_vertex.next_vertices = [] then 
-					draw_edges t_vertices
-				else 
-				let hn_vertex = List.hd h_vertex.next_vertices in
-				let (x2, y2) = (hn_vertex.abscissa, hn_vertex.ordinate) in
-				let (_,h2) = text_size hn_vertex.name in
-				(*si le successeur est aussi un empty_vertex, on ne trace qu'une droite*)
-				if hn_vertex.name = "empty_vertex" then
-					draw_segments [|(x1, y1, x2, y2)|]
-				(*sinon, on trace une flèche*)
-				else
-					(*selon la position relative des deux noeuds à tracer, on modifie les flèches*)
-					(if y1 > y2 then draw_segments [|(x1, y1, x2, y2 + 2*h2);
-													(x2, y2 + 2*h2, x2, y2 + h2);
-													(x2, y2 + h2, x2 - 7, y2 + h2 + 7);
-													(x2, y2 + h2, x2 + 7, y2 + h2 + 7)|]
-					else draw_segments [|(x1, y1, x2, y2 - 2*h2);
-										(x2, y2 - 2*h2, x2, y2 - h2);
-										(x2, y2 - h2, x2 - 7, y2 - h2 - 7);
-										(x2, y2 - h2, x2 + 7, y2 - h2 - 7)|] );
-				(*on appelle à nouveau la fonction pour tracer les autres flèches*)
-				draw_edges t_vertices)
-			(*sinon, on s'intéresse aux successeurs de l'élément actuel*)			
-			else
-				match h_vertex.next_vertices with
-					(*s'il n'a pas de successeur, on ne trace rien et on passe à l'élément suivant*)
-					|[] -> draw_edges t_vertices
-					(*s'il a un successeur, on regarde s'il s'agitt d'un empty_vertex ou non*)
-					|hn_vertex::tn_vertices ->
-						let (x2, y2) = (hn_vertex.abscissa, hn_vertex.ordinate) in
-						let (_,h2) = text_size hn_vertex.name in
-						(*s'il s'agit d'un empty_vertex, on trace une droite reliant le noeud actuel à son successeur*)
-						if hn_vertex.name = "empty_vertex" then
-							(*selon la position relative des deux noeuds à tracer, on modifie la droite*)
-							if y1 > y2 then 
-								draw_segments [|(x1, y1 - h1, x2, y2);|]
-							else 
-								draw_segments [|(x1, y1 + h1, x2, y2)|]
-						(*s'il ne s'agit pas d'un empty_vertex, on trace une flèche reliant le noeud à son successeur*)
-						else
-							(*si le noeud est son propre successeur*)
-							if h_vertex.name = hn_vertex.name then
-								(draw_segments [|(x1, y1 - h1, x1, y1 - 2*h1);
-												(x2, y2 + 2*h2, x2, y2 + h2);
-												(x2, y2 + h2, x2 - 7, y2 + h2 + 7);
-												(x2, y2 + h2, x2 + 7, y2 + h2 + 7)|];
-								moveto x1 (y1-2*h1);
-								curveto (x1+2*w1,y1-2*h1) (x1+2*w1,y1+2*h1) (x2, y2+2*h2) )
-							(*si le noeud et le successeur sont différents*)	
-							else
-								(*selon la position relative des deux noeuds à tracer, on modifie les flèches*)
-								if y1 > y2 then draw_segments [|(x1, y1 - h1, x2, y2 + 2*h2);
-																(x2, y2 + 2*h2, x2, y2 + h2);
-																(x2, y2 + h2, x2 - 7, y2 + h2 + 7);
-																(x2, y2 + h2, x2 + 7, y2 + h2 + 7)|]
-									else draw_segments [|(x1, y1 + h1, x2, y2 - 2*h2);
-														(x2, y2 - 2*h2, x2, y2 - h2);
-														(x2, y2 - h2, x2 - 7, y2 - h2 - 7);
-														(x2, y2 - h2, x2 + 7, y2 - h2 - 7)|];
-						(*on crée un nouveau noeud contenant le noeud actuel auquel on a retiré son premier successeur*)
-						let new_vertex = {name = h_vertex.name; next_vertices = tn_vertices; abscissa = h_vertex.abscissa; ordinate = h_vertex.ordinate; draw = h_vertex.draw} in
-							(*on appelle à nouveau la fonction pour tracer les autres flèches*)
-							draw_edges (new_vertex::t_vertices) );;
-
-				
-(**fonction dessinant et reliant les ports**)
-let rec draw_ports ports vertices=
-	match ports with
-		|[] -> ()
-		|h_port::t_ports ->
-			(*pour se faciliter le dessin par la suite, on ne prend que les out_port*)
-			if h_port.io = "in" then draw_ports (t_ports@[h_port]) vertices
-			else	
-				(*on cherche l'in_port correspondant au port actuel*)
-				(let port = List.find (fun p -> p.port_name = h_port.port_name) t_ports in
-				(*on cherche le noeud correspondant à l'out_port*)
-				let h_vertex = List.find (fun v -> v.name = h_port.vertex_name) vertices in
-				set_line_width h_port.width;
-				set_color h_port.color;
-				(*on cherche le noeud correspondant à l'in_port*)
-				let vertex = List.find (fun v -> v.name = port.vertex_name) vertices in
-				let (x1, y1) = (h_vertex.abscissa, h_vertex.ordinate) in
-				let (x2, y2) = (vertex.abscissa, vertex.ordinate) in
-				let (w1, h1) = text_size h_vertex.name in
-				let (w2, h2) = text_size vertex.name in
-				(*on trace les ports selon leur position relative*)
-				match x1 < x2 with
-					|true ->
-						draw_poly [|(x1+2*w1/3, y1+5);(x1+2*w1/3, y1-5);(x1+2*w1/3+8, y1)|];
-						draw_poly [|(x2-2*w2/3, y2);(x2-2*w2/3-8, y2+5);(x2-2*w2/3-8, y2-5)|];
-						draw_segments[|(x1+2*w1/3+8, y1, x2-2*w2/3-8, y2)|];
-						set_color black;
-						if y1 > y2 then
-							(let (w, h) = text_size ("in_"^port.port_name) in
-							moveto (x1+2*w1/3+8) y1;
-							draw_string ("out_"^h_port.port_name);
-							moveto (x2-2*w2/3-8-w) (y2-h);
-							draw_string ("in_"^port.port_name)) 
-						else
-							(let (w, _) = text_size ("in_"^port.port_name) in
-							let (_, h) = text_size ("out_"^h_port.port_name) in
-							moveto (x1+2*w1/3+8) (y1-h);
-							draw_string ("out_"^h_port.port_name);
-							moveto (x2-2*w2/3-8-w) y2;
-							draw_string ("in_"^port.port_name) );
-						(*on trace les ports qui n'ont pas encore été tracés*)
-						let otherports = List.filter (fun p -> p <> port) t_ports in
-						draw_ports otherports vertices
-					|false ->
-						draw_poly [|(x1-2*w1/3, y1+5);(x1-2*w1/3, y1-5);(x1-2*w1/3-8, y1)|];
-						draw_poly [|(x2+2*w2/3, y2);(x2+2*w2/3+8, y2+5);(x2+2*w2/3+8, y2-5)|];
-						draw_segments[|(x1-2*w1/3-8, y1, x2+2*w2/3+8, y2)|];
-						set_color black;
-						if y1 < y2 then
-							(let (w, h) = text_size ("out_"^h_port.port_name) in
-							moveto (x1-2*w1/3-8-w) (y1-h);
-							draw_string ("out_"^h_port.port_name);
-							moveto (x2+2*w2/3+8) y2;
-							draw_string ("in_"^port.port_name)) 
-						else
-							(let (w, _) = text_size ("out_"^h_port.port_name) in
-							let (_, h) = text_size ("in_"^port.port_name) in
-							moveto (x1-2*w1/3-8-w) y1;
-							draw_string ("out_"^h_port.port_name);
-							moveto (x2+2*w2/3+8) (y2-h);
-							draw_string ("in_"^port.port_name) );
-						(*on trace les ports qui n'ont pas encore été tracés*)
-						let otherports = List.filter (fun p -> p <> port) t_ports in
-						draw_ports otherports vertices );;
 	
 
 (**fonction permettant de remettre le graphe à zéro**)
@@ -686,9 +477,9 @@ let reset ports vertices =
 	clear_graph ();
 	init ();
 	scale vertices;
-	draw_vertices vertices;
-	draw_edges vertices;
-	draw_ports ports vertices;;
+	GraphDraw.draw_vertices vertices;
+	GraphDraw.draw_edges vertices;
+	GraphDraw.draw_ports ports vertices;;
 	
 	
 (**fonction permettant de savoir sur quel noeud est la souris**)
@@ -752,11 +543,11 @@ let create_vertex vertices =
 	if name <> "" then (
 		let (w, h) = text_size name in
 		(*on crée le nouvau noeud*)
-		let drawing_option = {vertex_shape = Rectangle; vertex_color = yellow; edge_width = 1; edge_color = green} in
-		let new_vertex = {name = name; next_vertices = []; abscissa = size_x()-2*w; ordinate = size_y()-2*h; draw = drawing_option} in
+		let drawing_option = {vertex_shape = Rectangle; vertex_color = white; edge_width = 1; edge_color = black} in
+		let new_vertex = {name = name; next_vertices = []; abscissa = size_x()-4*w; ordinate = size_y()-4*h; draw = drawing_option} in
 		(*on trace le nouveau noeud*)
 		vertices := new_vertex::!vertices;
-		draw_vertices !vertices );;
+		GraphDraw.draw_vertices !vertices );;
 	
 
 (**fonction permettant de supprimer un noeud**)
@@ -786,9 +577,9 @@ let remove_vertex ports vertices =
 		set_color white;
 		fill_rect (7*size_x()/36+3) 3 (29*size_x()/36-8) (size_y()-8);
 		(*on trace le nouveau graphe*)
-		draw_vertices !vertices;
-		draw_edges !vertices;
-		draw_ports !ports !vertices );;
+		GraphDraw.draw_vertices !vertices;
+		GraphDraw.draw_edges !vertices;
+		GraphDraw.draw_ports !ports !vertices );;
 
 
 (**fonction permettant de relier deux noeuds**)
@@ -808,7 +599,7 @@ let link_vertex vertices =
 	(*on ajoute le second noeud dans la liste des successeurs du premier*)
 	vertex1.next_vertices <- vertex2::vertex1.next_vertices;
 	(*on trace les flèches entre les noeuds*)
-	draw_edges vertices;;
+	GraphDraw.draw_edges vertices;;
 	
 	
 (**fonction permettant d'ajouter des ports**)
@@ -830,41 +621,42 @@ let add_port ports vertices =
 		let vertex2 = mouse_on_vertex !vertices in
 		if vertex2.name <> "" then (
 			(*on crée les deux nouveaux ports*)
-			let port1 = {port_name = name; vertex_name = vertex1.name; io = "out"; width = 1; color = cyan} in
-			let port2 = {port_name = name; vertex_name = vertex2.name; io = "in"; width = 1; color = cyan} in
+			let port1 = {port_name = name; vertex_name = vertex1.name; io = "out"; width = 1; color = black} in
+			let port2 = {port_name = name; vertex_name = vertex2.name; io = "in"; width = 1; color = black} in
 			(*on trace les nouveaux ports*)
 			ports := port1::port2::!ports;
-			draw_ports !ports !vertices) );;
+			GraphDraw.draw_ports !ports !vertices) );;
 	
 
 (**fonction permettant d'améliorer l'affichage du graphe**)
 let layout ports vertices =
-	(*on convertit les vertex en liste de lien*)
-	let link_list = ref [] in
-	let rec f v =
-		match v.next_vertices with
-		|[] -> ()
-		|h_vertex::t_vertices ->
-			if v.name <> "empty_vertex" then (
-				if h_vertex.name <> "empty_vertex" then
-					(link_list := (v.name, h_vertex.name)::!link_list;
-					let new_v = {name = v.name; next_vertices = t_vertices; abscissa = v.abscissa; ordinate = v.ordinate; draw = v.draw} in
-					f new_v)
-				else
-					(let new_v = {name = v.name; next_vertices = (h_vertex.next_vertices)@t_vertices; abscissa = v.abscissa; ordinate = v.ordinate; draw = v.draw} in
-					f new_v) )
-	in
-	List.iter f !vertices;
-	(*on appelle la fonction graph_layout*)
-	vertices := graph_layout !link_list;
-	(*on met à l'échelle les coordonnées des noeuds*)
-	scale !vertices;
-	(*on trace les noeuds, les flèches et les ports*)
-	set_color white;
-	fill_rect (7*size_x()/36+3) 3 (29*size_x()/36-8) (size_y()-8);
-	draw_vertices !vertices;
-	draw_edges !vertices;
-	draw_ports !ports !vertices;;
+	if !vertices <> [] then (
+		(*on convertit les vertex en liste de lien*)
+		let link_list = ref [] in
+		let rec f v =
+			match v.next_vertices with
+			|[] -> ()
+			|h_vertex::t_vertices ->
+				if v.name <> "empty_vertex" then (
+					if h_vertex.name <> "empty_vertex" then
+						(link_list := (v.name, h_vertex.name)::!link_list;
+						let new_v = {name = v.name; next_vertices = t_vertices; abscissa = v.abscissa; ordinate = v.ordinate; draw = v.draw} in
+						f new_v)
+					else
+						(let new_v = {name = v.name; next_vertices = (h_vertex.next_vertices)@t_vertices; abscissa = v.abscissa; ordinate = v.ordinate; draw = v.draw} in
+						f new_v) )
+		in
+		List.iter f !vertices;
+		(*on appelle la fonction graph_layout*)
+		vertices := Graphlayout.graph_layout !link_list;
+		(*on met à l'échelle les coordonnées des noeuds*)
+		scale !vertices;
+		(*on trace les noeuds, les flèches et les ports*)
+		set_color white;
+		fill_rect (7*size_x()/36+3) 3 (29*size_x()/36-8) (size_y()-8);
+		GraphDraw.draw_vertices !vertices;
+		GraphDraw.draw_edges !vertices;
+		GraphDraw.draw_ports !ports !vertices );;
 
 
 (**fonction gérant le chois d'option pour les noeuds**)
@@ -927,10 +719,10 @@ let vertex_option ports vertices =
 				vertex.draw.vertex_color <- white );
 		set_color white;
 		fill_rect (7*size_x()/36+3) 3 (29*size_x()/36-6) (size_y()-6);
-		draw_vertices vertices;
-		draw_edges vertices;
+		GraphDraw.draw_vertices vertices;
+		GraphDraw.draw_edges vertices;
 		if ports <> [] then
-			draw_ports ports vertices );
+			GraphDraw.draw_ports ports vertices );
 	(*on rétablit la fenêtre*)
 	set_color white;
 	fill_rect (w_case/2) (15*h_case) (13*w_case/2-5) (13*h_case-5);
@@ -1000,10 +792,10 @@ let edge_option ports vertices =
 				ignore(List.map (fun v -> v.draw.edge_color <- white) !vertex_list) );
 		set_color white;
 		fill_rect (7*size_x()/36+3) 3 (29*size_x()/36-6) (size_y()-6);
-		draw_vertices vertices;
-		draw_edges vertices;
+		GraphDraw.draw_vertices vertices;
+		GraphDraw.draw_edges vertices;
 		if ports <> [] then
-			draw_ports ports vertices );
+			GraphDraw.draw_ports ports vertices );
 	(*on rétablit la fenêtre*)
 	set_color white;
 	fill_rect (w_case/2) (15*h_case) (13*w_case/2-5) (13*h_case-5);
@@ -1074,9 +866,9 @@ let port_option ports vertices =
 				ignore(List.map (fun p -> p.color <- white) port_list) );
 		set_color white;
 		fill_rect (7*size_x()/36+3) 3 (29*size_x()/36-6) (size_y()-6);
-		draw_vertices vertices;
-		draw_edges vertices;
-		draw_ports ports vertices);
+		GraphDraw.draw_vertices vertices;
+		GraphDraw.draw_edges vertices;
+		GraphDraw.draw_ports ports vertices);
 	(*on rétablit la fenêtre*)
 	set_color white;
 	fill_rect (w_case/2) (15*h_case) (13*w_case/2-5) (13*h_case-5);
@@ -1150,7 +942,7 @@ let button_pressed title save_number ports vertices =
 				while button_down () do
 					 ();
 				done;
-				save_pdf (title^" "^string_of_int !save_number) (size_x()) (size_y()) !ports !vertices;
+				Graphdrawpdf.save_pdf (title^" "^string_of_int !save_number) (size_x()) (size_y()) !ports !vertices;
 				(*on incrémente le numéro de sauvegarde pour ne pas écraser par la suite le pdf*)
 				save_number := !save_number + 1 );
 			(*bouton "Quit"*)
@@ -1165,6 +957,17 @@ let button_pressed title save_number ports vertices =
 					();
 				done;
 				reset !ports !vertices);
+			(*bouton "Erase all"*)
+			let (we, he) = text_size "Erase all" in
+			if x > 7*w_case-4*we/3 && x < 7*w_case && y > 0 && y < 2*he then
+				(*on attend que le bouton soit relacher pour appeler la fonction*)
+				(while button_down () do
+					();
+				done;
+				ports := [];
+				vertices := [];
+				set_color white;
+				fill_rect (7*size_x()/36+3) 3 (29*size_x()/36-8) (size_y()-8) );
 			(*boutons gérant les options de dessin des noeuds*)
 				(*bouton "Vertex"*)
 				let (wv, hv) = text_size "Vertex" in
@@ -1206,10 +1009,10 @@ let move_vertex ports vertices =
 			(*on efface le graphe à l'écran et on trace le nouveau*)
 			set_color white;
 			fill_rect (7*size_x()/36+3) 3 (29*size_x()/36-8) (size_y()-8);
-			draw_vertices vertices;
-			draw_edges vertices;
+			GraphDraw.draw_vertices vertices;
+			GraphDraw.draw_edges vertices;
 			if ports <> [] then
-				draw_ports ports vertices )
+				GraphDraw.draw_ports ports vertices )
 	in
 	(*on trouve le noeud à déplacer*)
 	let vertex = mouse_on_vertex vertices in
@@ -1240,13 +1043,14 @@ let interface title ports vertices =
 
 (**fonction principale qui appelle les autres**)
 let graph_draw title ?(width = 1440) ?(height = 900) port_list link_list =
-	let vertices = ref (vertex_of_graph link_list) in
+	let vertices = ref (Graphlayout.vertex_of_graph link_list) in
 	let ports = ref port_list in
 	(*on ouvre une fenêtre*)
 	open_window title width height;
 	(*on initialise la fenêtre*)
 	init ();
 	(*on affiche le graph*)
-	layout ports vertices;
+	if !vertices <> [] then
+		layout ports vertices;
 	(*on appelle la fonction gérant les interactions*)
 	interface title ports vertices;;
