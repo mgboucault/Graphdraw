@@ -559,6 +559,15 @@ let remove_vertex ports vertices =
 	(*on récupère le noeud sur lequel on vient de cliquer*)
 	let vertex = mouse_on_vertex !vertices in
 	if vertex.name <> "" then (
+		(*on cherche à récupérer tous les empty_vertex lié à ce noeud*)
+		let vertex_list = ref [vertex] in
+		let rec f vert =
+			let empty_vertex_list = List.filter (fun v -> v.name = "empty_vertex") vert.next_vertices in
+			if (empty_vertex_list <> []) then
+				(vertex_list := empty_vertex_list @ (!vertex_list);
+				ignore(List.map f empty_vertex_list))
+		in
+		f vertex;	
 		(*on supprimme les flèches qui avaient un lien avec ce noeud*)
 		let f vertx =
 			vertx.next_vertices <- List.filter (fun v -> not(v == vertex)) vertx.next_vertices
@@ -571,8 +580,11 @@ let remove_vertex ports vertices =
 				ports := List.filter (fun p -> p.port_name <> port.port_name) !ports
 			in
 			ignore(List.map g port_list));
-		(*on retire ce noeud de la liste des noeuds*)
-		vertices := List.filter (fun v -> not (v == vertex)) !vertices;
+		(*on retire ce noeud et les empty_vertex de la liste des noeuds*)
+		let g vert =
+			vertices := List.filter (fun v -> not (v == vert)) !vertices
+		in
+		ignore(List.map g !vertex_list);
 		(*on efface le graphe à l'écran*)
 		set_color white;
 		fill_rect (7*size_x()/36+3) 3 (29*size_x()/36-8) (size_y()-8);
