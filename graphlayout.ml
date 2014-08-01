@@ -10,7 +10,7 @@ open Types;;
                                                               (** I-a:  Préliminaire **)
 
 
-(** fonction qui enleve les occurences multiples de la liste l *) 
+(** fonction qui enleve les  occurrences multiples de la liste l *) 
 let no_occ l=
 
 	let rec no_occ' l l' =(
@@ -19,11 +19,11 @@ let no_occ l=
 	    |h::t -> if (List.mem h t ) then no_occ' t l'
 	                             		else no_occ' t (l'@[h])
   )in
-  (*on enlève les occurence par la droite *)
+  (*on enlève les  occurrences par la droite *)
   no_occ' (List.rev l ) []
 ;; 
 
-(**Permet de calculer le max d'une liste d'entier*)
+(**Permets de calculer le max d'une liste d'entier*)
   let rec list_max l=
     let rec list_max' l m=
      match l with 
@@ -36,7 +36,7 @@ let no_occ l=
     |h::t->list_max' t h
 ;;
   
-(** fonction qui enleve les occurences multiples pour une liste non ordonnée*)
+(** fonction qui enleve les  occurrences multiples pour une liste non ordonnée*)
 let rec no_occ_eq l =
     
   (* égalité pour des listes non ordonnées*)
@@ -74,11 +74,11 @@ let list_noeud liste_lien=  let tmp = List.split liste_lien in no_occ((fst tmp)@
                                                                                   (** I-b: Modélisation **)
 
 
-(** conversion d'un graph en fonction: entrée liste d'éléments
+(** Conversion d'un graph en fonction: entrée liste d'éléments
 suivant graph ["a";"b"] = ["b";"d";"e";"f"] *)
 let suivant liste_lien list_noeud=
 
-  (* conversion d'un graph en fonction: entrée 1 élément
+  (* donne les fils d'un élément
   f_lien graph "b" = ["d";"e";"f"] *)
   let f_lien liste_lien element =(
     
@@ -115,11 +115,11 @@ let completer l1 l2=
 	else completer_tmp l1 l2 []
 ;;
 
-(** affirer tout les chemains / cycle qui parte d'un noeud (origine) *)
+(** Calcul tous les chemains / cycle qui parte d'un noeud (origine) *)
 let chemin liste_lien origine =
 	
-	(*Permet de placer le noeud suivant d'un chemin pour une liste de chemain
-	  s'il y a plusieurs noeuds fils, la fonction va créer deux chemain avec les deux noeuds fils*)
+	(*Permets de placer le noeud suivant d'un chemin pour une liste de chemins s'il y a plusieurs noeuds fils,
+	 la fonction va créer deux chemin avec les deux noeuds fils*)
 	let rec chemin0 liste_lien liste origine =(
 	  match liste with
 	    |[]->[]
@@ -129,8 +129,8 @@ let chemin liste_lien origine =
 	                 |[]->[]
 	)in
 
-	(*permet de trouver les chemins partant d'origine en verifiant les cas particuliers 
-	  avec utilisation de chemain recursivement *)
+	(*Permets de trouver les chemins partants d'un élément :origine 
+	en vérifiant les cas particuliers avec utilisation de la fonction chemin0 recursivement*)
 	let rec chemin1 liste_lien liste origine =
   	match (liste,chemin0 liste_lien liste origine ) with
 	  |([], _)->[]
@@ -144,7 +144,7 @@ let chemin liste_lien origine =
 (** Chercher tous les cycle du graph déduit de liste_lien*)
 let list_cycle liste_lien = 
 
-  (* Permet de récuperer seulement les cycles commencent par "origine" dans "liste_chemin"*)
+  (* Permets de récupérer seulement les cycles commencent par "origine" dans "liste_chemin"*)
   let rec trier_cycle liste_chemin origine=
     match liste_chemin with
       |[]->[]
@@ -155,7 +155,7 @@ let list_cycle liste_lien =
                                          else trier_cycle t_chemin origine
   in
 
-  (*Permet de récuperer tout les cycles a partir de la liste des noms des noeuds *)
+  (*Permets de récupérer tous les cycles à partir de la liste des noms des noeuds *)
 	let rec chercher_cycle_tmp liste_lien liste_nom = (
 	  match liste_nom with
 	    |[]-> []
@@ -168,10 +168,10 @@ let list_cycle liste_lien =
 
                                       (** I-c: Greedy algorithm ( trouver les flèches + choix/modification des flèches) **)
 
-(**Permet de trouver les flèches qui forment les cycles*)
+(**Permets de trouver les flèches qui forment les cycles*)
 let rec trouver_fleches liste_cycle=
 
-  (*Permet de recupérer les flèches de chaque cycle*)
+  (*Permets de récupérer les flèches de chaque cycle*)
 	let rec fleche_cycle liste_cycle =
 		match liste_cycle with 
 			|[]->[]
@@ -184,11 +184,11 @@ let rec trouver_fleches liste_cycle=
 		|hl::tl -> (fleche_cycle hl)@(trouver_fleches tl)
 ;;
 
-(** Permet de donner pour chaque flèches le nombre de cycles dans lesquels elle est comprise   
+(** Permets de donner pour chaque flèches le nombre de cycles dans lesquels elle est comprise  
     Cet fonction est l'heuristique à utiliser pour le greedy algotithme                      *)
 let occurrence_fleches  liste_lien=
   
-  (* fonction qui compte les occurences de a dans la liste l *) 
+  (* fonction qui compte les  occurrences de a dans la liste l *) 
   let rec nb_occ a l=
     let rec nb_occ' a l n=
       match l with 
@@ -201,25 +201,25 @@ let occurrence_fleches  liste_lien=
 
   let  remove a l =List.filter (fun x-> (x<>a)) l in
 
-	(*permet de compter les cycles pour la liste de flèches*)
+	(*Permets de compter les cycles d'une liste de flèches*)
 	let rec greedy_cycle_trier liste_fleche l_out=	
 		match liste_fleche with
 			|[]->l_out
 			|(a,b)::t-> greedy_cycle_trier ( remove (a,b) liste_fleche) ((a,b,1+(nb_occ (a,b) t))::l_out)
 	in
 	
-	(*relation d'ordre pour trier les triplets*)
+	(*Relation d'ordre pour trier les triplets*)
 	let ordre = List.fast_sort (fun (a1,b1,n1) (a2,b2,n2) -> (if n2<>n1 then n2-n1 else ((Random.int 3)-1)) ) in
 	
-	(*Permet de placer ceux avec la meilleure heuristique au début de la liste*)
+	(*Permets de placer ceux avec la meilleure heuristique au début de la liste*)
 	ordre (greedy_cycle_trier (trouver_fleches(list_cycle liste_lien)) [] )
 ;;
 	
-(**  Permet de retourner des flèches pour rendre le graphe acyclique         
+(**  Permets de retourner des flèches pour rendre le graphe acyclique         
      heuristique: on inverse les flèche qui influencent le plus de cycles  *)
 let  cycle_removal liste_lien =
 let rec cycle_removal' liste_lien =
-  (*Permet de modifier un graphe (en liste de lien ) en entrant le couple à inverser*)
+  (*Permets de modifier un graphe (en liste de lien ) en entrant le couple à inverser*)
   let rec modifier_fleche liste_lien couple=(
   	match (liste_lien,couple) with
   		|([],_)->[]
@@ -244,13 +244,13 @@ match cycle_removal' liste_lien with |(a,b)->(no_occ a,no_occ b)
                                                                           (** II-a Préliminaire**)
 
 
-(**Conversion du tableu sous forme regroupé
+(**Conversion du tableau sous forme regroupé 
 exemple :
 [(a,b);(a,c);(b,d)]->[ (a,[b;c]) ; (b,[d]) ; (c,[]) ; (d,[]) ]
 *)
 let table graph=
   
-  (*Permet de donner la liste des fils du noeud element*)
+  (*Permets de donner la liste des fils du noeud element*)
 	let rec table_tmp graph element= 
 	  match graph with
 	    |[]->[]
@@ -258,7 +258,7 @@ let table graph=
 	                              else (table_tmp t element)                
 	in
 
-  (*Permet de récuperer le tableau de lien*)
+  (*Permets de récuperer le tableau de lien*)
 	let rec table_tmp0 graph l= 
 	  match l with
 	    |[]->[]
@@ -271,7 +271,7 @@ let table graph=
 (**Conversion graph tab -> liste *)
 let list_of_graph tableau_lien=
 
-	(*  permet de dégrouper les lien
+	(*  Permets de dégrouper les lien
 	ex : (a,[b;c])  ->  [(a,b);(a,c)]  *)
 	let rec list_of_graph_tmp (a,liste_nom) =
 	  match liste_nom with
@@ -295,7 +295,7 @@ let list_of_graph tableau_lien=
 
 
 
-(**Permet de modifier la coordinate d'un vertex dans le graph comme liste des positions (liste_position)  
+(**Permets de modifier la coordinate d'un vertex dans le graphe comme liste des positions (liste_position)  
 modifier [(a,0,1);(b,2,3)] 1 a 4 = [(a,4,1);(b,2,3)]
 modifier [(a,0,1);(b,2,3)] 2 b 4 = [(a,0,1);(b,2,4)]
 *)
@@ -308,7 +308,7 @@ let rec modifier liste_position coordinate element valeur =
                     else (a,b,c)::(modifier tl coordinate element valeur)
 ;;  
 
-(**Permet de déposer tous les bouts d'un graphe (sous forme de liste de lien ) sur un étage du graphe (liste_position) *)
+(**Permets de déposer tous les bouts d'un graphe (sous forme de liste de lien ) sur un étage du graphe (liste_position) *)
 let poser n liste_position tableau_lien = 
 	let rec poser' n liste_position tableau_lien liste_bout= 
 		match tableau_lien with
@@ -319,17 +319,17 @@ let poser n liste_position tableau_lien =
 	poser' n liste_position tableau_lien []
 ;;
 
-(**fonction qui enleve tout les noeuds de la liste l d'un tableau de lien*)
+(**Fonction qui enleve tous les noeuds de la liste le d'un tableau de lien*)
 let enlever_tab tableau_lien l =
 
-  (*Permet d'enlever element d'un tableau de lien*)
+  (*Permets d'enlever un element d'un tableau de lien*)
 	let enlever_tab0 tableau_lien element = 
 		List.map 
 		(fun (a,liste_nom)-> (a,List.filter (fun nom-> nom<>element ) liste_nom ) ) 
 		( List.filter (fun (a,l)-> a<>element ) tableau_lien)
 	in
 	
-	(*enlever les éléments d'une liste *)
+	(*enlever les éléments d'une liste d'un tableau de lien*)
 	let rec enlever_tab1 tableau_lien liste = 
 	      match liste with
 	        |[]-> tableau_lien
@@ -350,7 +350,7 @@ sortie: liste position   (sting,int1,int2) list
 
 let layering liste_lien=
 
-	(*Initialisation d'un graph avec avec les noms de vertex*)
+	(*Initialisation d'un graphe avec avec les noms de vertex*)
   let crea graph =
   
   	let rec crea0 liste =
@@ -364,7 +364,7 @@ let layering liste_lien=
 
 	let etage_tab_hmax liste_lien =(
 	
-	  (*Permet de modifier un graph en ajoutant les bouts sur un étage*)
+	  (*Permets de modifier un graph en ajoutant les bouts sur un étage*)
 		let rec etage_tab_hmax0 liste_lien graph_tab n=(
 		  match graph_tab with 
 		    |[]->liste_lien
@@ -375,7 +375,7 @@ let layering liste_lien=
 		etage_tab_hmax0 (crea liste_lien) (table liste_lien) 1
 	)in
 
-	(* permet d'ordonner la liste pour avoir les vertex les plus gros avant *)
+	(* Permets d'ordonner la liste pour avoir les vertex les plus gros avant *)
 	List.fast_sort (fun (a1,b1,n1)  (a2,b2,n2) ->  n1-n2) (etage_tab_hmax liste_lien) 
 ;;
 
@@ -399,16 +399,16 @@ let placement_h0 liste_position =
 
 let vertex_of_graph' liste_lien=	
 
-	(*Création d'une liste avec les positions des vertices *)
+	(*Création d'une liste avec les positions des noeuds *)
 	let graph0 = placement_h0 (layering liste_lien) in
 	
-	(*initialisation de la liste de vertex *)
+	(*initialisation de la liste de vertices *)
 	let graph1= List.map ( fun (nom,x,y)-> {name=nom; next_vertices = []; abscissa= x; ordinate= y; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf. white; edge_width = 1; edge_color = Graphicspdf.black}}) graph0 in
 	
-	(*permet de trouver le vertex tq vertex.name = nom de la liste *)
+	(*Permets de trouver le vertex tel que vertex.name = nom dans la liste *)
 	let vert list_of_vertex nom = List.find (fun v-> v.name=nom) list_of_vertex in 
 	
-	(*permet d'ajouter les fils de chaque vertex récursivement *)
+	(*Permets d'ajouter les fils de chaque vertex récursivement *)
 	let rec vertex_of_graph_bis' graph_tab list_of_vertex =
 		match graph_tab with 
 			|[]->()
@@ -428,14 +428,14 @@ let vertex_of_graph' liste_lien=
 
 (** III-b Réduction des chemins    **)
 
-(**Permet de placer le noeud vertex en (x,y) dans le graphe graph_vertex*)
+(**Permets de placer le noeud vertex en (x,y) dans une liste de vertex*)
 let rec move vertex x y p_list_of_vertex=
 p_list_of_vertex :=
  List.map 
  (fun v-> ( (if (v.name=vertex.name && v.abscissa=vertex.abscissa && v.ordinate =vertex.ordinate ) then (v.abscissa <- x;v.ordinate <-y)) ;v)) !p_list_of_vertex
 ;;
 
-(**Permet de recuperer la largeur de chaque étage d'un vertex*)
+(**Permets de récupérer la largeur de chaque étage d'un vertex*)
 	let info liste_of_vertex=(
 		let rec info0 liste_of_vertex n=(
 	  	match List.partition (fun vertex->vertex.ordinate= n ) liste_of_vertex  with
@@ -445,7 +445,7 @@ p_list_of_vertex :=
 	(info0 liste_of_vertex 1)
 	);;
 
-(**Permet de faire +1 sur le n eme element d'une liste d'entier pointé*)
+(**Permets de faire +1 sur le n ème element d'une liste d'entier*)
 			let rec upp l n=( 
 				match !l with 
 					|[]->()
@@ -453,9 +453,9 @@ p_list_of_vertex :=
 				else (let pt=ref t in upp pt (n-1) ; l:=h::(!pt))
 			);;
 			
-(**fonction  qui ordonne les graphes des vertices*)
+(**Fonction  qui ordonne les graphes des vertices*)
 let ordonner p_list_of_vertex = 
-(*fonction interne qui ordonne les fils des vertices*)
+  (*Fonction interne qui ordonne les fils des vertices*)
 	let rec ordonner_vertex vertex =(
 		vertex.next_vertices <- 
 		(List.fast_sort 
@@ -475,13 +475,13 @@ let ordonner p_list_of_vertex =
 	p_list_of_vertex :=( ordonner' !p_list_of_vertex)
 ;;
 
-(**fonction qui permet de réduire des chemains trop long : tri vertical
-Pemet de remonter les bout en dessous du noeud pere
-Permet de faire remonter des chemains sans boucle
+(**fonction qui Permets de réduire des chemins trop longs : tri vertical
+Permets de remonter les bouts en dessous du noeud père
+Permets de faire remonter des chemins sans boucle 
 *)
 let reduce_path p_list_of_vertex =
 
-  (*fonction qui vérifie si le vertex mène vers un chemin sans boucle ou séparation*)
+  (*Fonction qui vérifie si le vertex mène vers un chemin sans boucle ou séparation*)
   let rec lone_path vertex vertex_before list_of_vertex =(
     match (List.filter (fun v-> (v.ordinate=vertex.ordinate+1)&&(List.mem vertex v.next_vertices)) list_of_vertex) with 
       |[] -> (match vertex.next_vertices with
@@ -494,7 +494,7 @@ let reduce_path p_list_of_vertex =
                        else false
       |_->false
   )in
-  (*fonction qui calcul le noeud pere le plus proche 
+  (*fonction qui calcul le noeud père le plus proche et 
   filtre les chemins sans boucle/séparation pour les remonter*)
   let n_up vertex p_list_of_vertex=(
     let resultat =List.fast_sort (fun v1 v2 -> v1.ordinate-v2.ordinate) 
@@ -503,7 +503,7 @@ let reduce_path p_list_of_vertex =
     if resultat= [] then (vertex.ordinate+1) else   (List.hd resultat).ordinate
   )in
 
-  (*permet de remonter les noeuds à la nouvelle positions calculée*)
+  (*Permets de remonter les noeuds à la nouvelle positions calculée*)
   if !p_list_of_vertex=[] then () 
   else (
 
@@ -518,7 +518,7 @@ let reduce_path p_list_of_vertex =
   
 
   
-  (*pemet de verifier s'il n'y a pas de noeuds_pere sous un de ses noeuds fils *)
+  (*pemets de vérifier s'il n'y a pas de noeuds père sous un de ses noeuds fils *)
   ordonner p_list_of_vertex;
     List.hd (
     List.map (fun v-> (
@@ -528,7 +528,7 @@ let reduce_path p_list_of_vertex =
                       )) !p_list_of_vertex  
     );
   );
-    (*pemet de verifier que chaque noeud a une position distincte *)
+    (*pemets de verifier que chaque noeud a une position distincte *)
     let verifier list_of_vertex p_list_of_vertex=(
     
       let rec verifier' list_of_vertex p_list_of_vertex=(
@@ -551,8 +551,8 @@ let reduce_path p_list_of_vertex =
     ordonner p_list_of_vertex
 ;;
 
-(**fonction qui place les noeuds hors de l'ecran (x->-x) pour mieux les replacer après
-Permet d'avoir plusieurs empty vertex au même endroit 
+(**fonction qui place les noeuds hors de l'ecran (x->-x) pour mieux les replacer après ,
+Permets d'éviter d'avoir plusieurs empty vertex au même endroit ce qui nous enpècherait de les différencier
 *)
 let rec change_layer00 liste p_list_of_vertex=
 			match liste with
@@ -566,15 +566,15 @@ let rec change_layer00 liste p_list_of_vertex=
 (*Ajoute les noeuds virtuels dans la liste de vertex*)
 let add_dummy p_list_of_vertex =
 
-	(*Poiteur vers la liste des largeurs de chaques étage () construit a partir du vertex le plus grand*)
+	(*Poiteur vers la liste des largeurs de chaques étage*)
 	let p_info = ref (info !p_list_of_vertex ) in
 			
 	let rec add_dummy_h p_info vertex =(
 		
-		(*fonction qui ajoute un élément à la fin d'un liste pointé*)
+		(*fonction qui ajoute un élément à la fin d'une liste pointé*)
 		let rec add_end element p_liste = p_liste := (!p_liste)@[element] in
 					
-		(*fonction qui informe s'il faut ajouter un noeud virtuel apres un vertex de la liste avec sa position*)
+		(*fonction qui informe s'il faut ajouter un noeud virtuel après un vertex de la liste selon sa position*)
 		let rec absc vertex_list nb= (
 
 			let n = try List.nth (!p_info) (nb) with |Failure("nth") -> 0 in
@@ -602,7 +602,7 @@ let add_dummy p_list_of_vertex =
 
 (** III-d Crossing reduce **)
 
-(**Permet d'obtenir les lien entre deux étages
+(**Permets d'obtenir les liens entre deux étages
 [(1,2);(3,2);(3,1)] -> [(1,[2]);(3,[1;2])] *)
 let layer list_of_vertex n=
 	let layer' = List.filter (fun vertex->vertex.ordinate= (n+2) ) list_of_vertex  in
@@ -610,7 +610,7 @@ let layer list_of_vertex n=
 	let pos vertex = (vertex.name,vertex.abscissa,vertex.ordinate) in
 
 	let etage0 = List.map    (fun vertex -> (pos vertex , List.map pos vertex.next_vertices))       layer'         in
-	(*on doit ajouter les pere sans fils*)
+	(*on doit ajouter les père sans fils*)
 	let etage1 = List.filter (fun vertex -> (vertex.ordinate= n+1 && not( List.mem vertex fils ) )) list_of_vertex in 
 	let etage1 = List.map    (fun vertex -> (pos vertex , [pos vertex]))                            etage1         in
 	(*On distribue les noeuds son fils sur les bords*)
@@ -646,7 +646,7 @@ let layer' list_of_vertex n=
 	no_occ (List.map (fun element -> (element, no_occ (layer'' etage_lien element []) ) ) liste_fils)
 ;;
 	
-(**fonction qui reduit les croisement grossièrement : logique fils->pere*)
+(**fonction qui réduit les croisements grossièrement : logique fils->père*)
 let less_crossing p_list_of_vertex =
   ordonner p_list_of_vertex;
 	let h_max =(list_max (List.map (fun v->v.ordinate) !p_list_of_vertex))-1 in 
@@ -655,7 +655,7 @@ let less_crossing p_list_of_vertex =
 	
 		let p_compteur = ref 0 in
 
-		(*fonction qui place ordonne grrosièrement un étage *)
+		(*fonction qui place ordonne grossièrement un étage *)
 		let rec change_layer liste p_list_of_vertex =(
 				match liste with
 					|[]->()
@@ -682,7 +682,7 @@ let less_crossing' p_list_of_vertex=
 	
 		let p_compteur = ref 0 in
 				
-		(*fonction qui place ordonne grrosièrement un étage *)
+		(*fonction qui place ordonne grossièrement un étage *)
 		let rec change_layer liste p_list_of_vertex =(
 				match liste with
 					|[]->()
@@ -705,11 +705,11 @@ let less_crossing' p_list_of_vertex=
 
 (**IV- a Centrer les graphes **)
 
-(**fonction qui reduit les croissement et centre les noeuds pour un étage
-avec etage du bas fixé comme référence pour choisir les barycentres*)
+(**fonction qui réduit les croissements et centre les noeuds pour un étage
+avec l'étage du bas fixé comme référence pour choisir les barycentres*)
 let center_fixed_son p_list_of_vertex y =
   let n=y-2 in
-  (*on ne tient pas en compte les bout sans père *)
+  (*on ne tient pas en compte les bouts sans père *)
   let etage = List.filter (fun (vertex,liste) -> liste <> [vertex] ) (layer !p_list_of_vertex n) in 
   let etage = if etage = [] then layer !p_list_of_vertex n else etage in
   let bar liste=
@@ -783,8 +783,8 @@ let center_fixed_son p_list_of_vertex y =
       )
 ;;
 
-(**fonction qui reduit les croissement et centre les noeuds pour un étage
-avec etage du haut fixé comme référence pour choisir les barycentres*)
+(**fonction qui réduit les croissements et centre les noeuds pour un étage
+avec l'étage du hauts fixé comme référence pour choisir les barycentres*)
 let center_fixed_father p_list_of_vertex y=
   let n=y-1 in
   let etage = layer' !p_list_of_vertex n in
@@ -792,7 +792,7 @@ let center_fixed_father p_list_of_vertex y=
   (fun (vertex1,liste1) (vertex2,liste2) -> List.length liste2 - List.length liste1) etage 
   in
   
-  (*Permet de calculer les barycentre d'une liste de vertices*)
+  (*Permets de calculer les barycentre d'une liste de vertices*)
   let bar liste=
     let rec bar' liste nb=
       match liste with
@@ -807,7 +807,7 @@ let center_fixed_father p_list_of_vertex y=
                                else r0
   in
   
-  (*Permet de distribuer les noeuds autours du barycentre calculé
+  (*Permets de distribuer les noeuds autours du barycentre calculé
   on garde l'ancien baricentre pour un tri plus efficace*)
  let rec barycenter liste =
     let rec barycenter' list_in list_out x0 n0 =
@@ -818,10 +818,9 @@ let center_fixed_father p_list_of_vertex y=
                                       else                barycenter' t (((name,x,y),n   ,n)::list_out) n  (     -1)
     in
     barycenter' liste [] 0 0
-  in  
+  in
 
-  
-  (*Permet de réordonner les noeuds en cas de superposition*)
+  (*Permets de réordonner les noeuds en cas de supérposition*)
   let verifier liste0 =
     let rec verifier' liste0 liste1 =
       match liste0 with
@@ -864,7 +863,7 @@ let center_fixed_father p_list_of_vertex y=
       let etage = List.fast_sort ( fun ((name0, x0,y0),n0,b0) ((name1, x1,y1),n1,b1)->if n0=n1 then b0-b1 else n0-n1) (barycenter etage) in
       let etage = List.map ( fun ((name, x,y),n,b) -> ((name, x,y),n)) etage in
   
-      (*Utilisation de véridfier*)
+      (*Utilisation de la fonction vérifier*)
       let etage = verifier (List.fast_sort ( fun ((name0, x0,y0),n0) ((name1, x1,y1),n1)-> n0-n1) etage) in
 
       List.hd (List.map (fun ((vertex_name, x,y),_)-> move {name=vertex_name;next_vertices=[];abscissa=  x ;ordinate=y; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf. white; edge_width = 1; edge_color = Graphicspdf.black}} (-x) y p_list_of_vertex) etage);
@@ -873,10 +872,10 @@ let center_fixed_father p_list_of_vertex y=
 ;;
 
 
-(**fonction qui reduit les croissement et centre les noeuds pour le graphe entier*)
+(**fonction qui reduit les croissements et centre les noeuds*)
 let center p_list_of_vertex =
 
-  (*on commence par chercher l'etage avec le plus de noeuds*)
+  (*on commence par chercher l'étage avec le plus de noeuds*)
   let width_max list_of_vertex=
     let rec width_max' list_of_vertex y width layer= 
       match List.partition (fun v-> v.ordinate=y) list_of_vertex with
@@ -988,10 +987,10 @@ let rec remove_empty_vertex p_list_of_vertex =
 
 (**IV- b Re-inserer les cycles **)
 
-(**fonction qui permet de remettre les flèches dans le bon sens*)
+(**fonction qui Permets de remettre les flèches dans le bon sens*)
 let rec change_arrow list_of_arrow p_list_of_vertex=
 
-  (* Permet d'echanger les entre chaque empty_vertex entre name1 et name 2 *)  
+  (* Permets d'échanger chaque empty_vertex entre name1 et name 2 *)  
   let change_arrow' (name1,name2) p_list_of_vertex =(
     
     (*fonction test si on est dans le chemin de empty_vertex vers name *)
@@ -1001,7 +1000,7 @@ let rec change_arrow list_of_arrow p_list_of_vertex=
                                   else false  )
     )in  
   
-    (* Permet d'echanger la flèche entre deux vertex père/fils *)  
+    (* Permets d'échanger la flèche entre deux vertex père/fils *)  
     let switch_f_s vertex_f vertex_s p_list_of_vertex =(
       (*On enlève le vertex fils comme fils du vertex père pour le graphe*)
       let rec switch_no_son list_of_vertex=
@@ -1048,7 +1047,7 @@ let rec change_arrow list_of_arrow p_list_of_vertex=
 ;;
 
 
-(**Permet d'ajouter les lien donnés par une liste de fleche*)
+(**Permets d'ajouter les lien donnés par une liste de fleche*)
 let rec add_link_list liste list_of_vertex=
   
   let add_link (a,b) list_of_vertex=(
@@ -1079,7 +1078,7 @@ let vertex_sinks list_of_sinks =
   let rec vertex_sinks' list_of_sinks l_out =
     match list_of_sinks with
       |[]->l_out
-      |h::t -> (if !i>1 then (i:=!i-1;j:=!j+1) else (i:= !j+1;j:=1); vertex_sinks' t 
+      |h::t -> (if !i>1 then (if !j < !i then j:= !j + 1 else i := !i-1) else (i:= !j+1 ; j:=1); vertex_sinks' t 
       ({name=fst h;next_vertices=[];abscissa= !i;ordinate= !j; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf. white; edge_width = 1; edge_color = Graphicspdf.black}}::l_out))
   in
   let list_of_vertex = vertex_sinks' list_of_sinks [] in
@@ -1087,10 +1086,18 @@ let vertex_sinks list_of_sinks =
 ;;
 
 (**fonction qui ajoute les noeuds oubliés*)
-let rec add_sinks list_of_sinks n list_of_vertex =
-  match list_of_sinks with
-    |[]   -> list_of_vertex
-    |(nom,nom')::t -> add_sinks t (n+1) ({name=nom;next_vertices=[];abscissa= n+1;ordinate= 1; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf. white; edge_width = 1; edge_color = Graphicspdf.black}}::list_of_vertex)
+let add_sinks list_of_sinks n h list_of_vertex =
+  let i=ref (n+1) in
+  let j=ref 0 in
+  let rec add_sinks' list_of_sinks list_of_vertex =
+    match list_of_sinks with
+      |[]   -> list_of_vertex
+      |(nom,nom')::t -> (
+                        if !j >= h then (i:= !i +1 ; j := 1)
+                        else  j:= !j +1;
+                        add_sinks' t ({name=nom;next_vertices=[];abscissa= !i;ordinate= !j; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf. white; edge_width   = 1; edge_color = Graphicspdf.black}}::list_of_vertex))
+  in
+  add_sinks' list_of_sinks list_of_vertex
 ;;
 
 (**fonction qui convertie une liste de lien en liste de vertices 
@@ -1127,9 +1134,10 @@ let vertex_of_graph liste_lien =
 
       if  list_sinks=[]then()
       else (
-          let n = list_max (List.map (fun v->v.abscissa) (List.filter (fun v->v.ordinate=1)  !list_of_vertex) )in
+          let n =list_max (List.map (fun v->v.abscissa) !list_of_vertex)in
+          let h =list_max (List.map (fun v->v.ordinate) !list_of_vertex)in
           let graph_sinks = List.filter (fun (a,b)-> not(List.exists (fun v->v.name=a)  !list_of_vertex))  list_sinks  in
-          list_of_vertex := add_sinks graph_sinks n !list_of_vertex;
+          list_of_vertex := add_sinks graph_sinks n h !list_of_vertex;
           
           List.hd (List.map (fun(nom,nom') -> add_son !list_of_vertex nom)  list_sinks)
           );
@@ -1178,19 +1186,20 @@ let graph_layout graphe=
     (*Reduction des croisements + centrer le graphe *)
     center graph_w;
   
-    (*Permet de supprimer les empty_vertex aligné*)
+    (*Permets de supprimer les empty_vertex aligné*)
     remove_empty_vertex graph_w;
 
-    (*Permet de remettre les cycles *)
+    (*Permets de remettre les cycles *)
     change_arrow graph_a_fleche graph_w;
     
-    (*Permet de remettre les flèches supprimées*)
+    (*Permets de remettre les flèches supprimées*)
     graph_w := if graph_b<>[] then (print_int 1;add_link_list graph_b !graph_w)
     else !graph_w;
     
-    let n = list_max (List.map (fun v->v.abscissa) (List.filter (fun v->v.ordinate=1) !graph_w) )in
+    let n = list_max (List.map (fun v->v.abscissa) !graph_w )in
+    let h = list_max (List.map (fun v->v.ordinate) !graph_w)in
     let graph_sinks = List.filter (fun (a,b)-> not(List.exists (fun v->v.name=a) !graph_w)) list_sinks in
-    graph_w:=add_sinks graph_sinks n !graph_w;
+    graph_w:=add_sinks graph_sinks n h !graph_w;
     
     add_link_list list_sinks !graph_w;
       )
