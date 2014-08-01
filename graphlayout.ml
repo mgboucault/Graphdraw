@@ -1072,21 +1072,29 @@ let rec add_link_list liste list_of_vertex=
     |h::t-> (add_link h list_of_vertex;add_link_list t list_of_vertex)
 ;;
 
-(**fonction qui convertie une liste de lien en liste de vertices 
-   marche pour graphe cyclique*)
+(**Fonction qui ajoute les noeuds seuls*)
 let vertex_sinks list_of_sinks =
-  let i = ref 1 in
+  let i = ref 0 in
   let j = ref 0 in
   let rec vertex_sinks' list_of_sinks l_out =
     match list_of_sinks with
       |[]->l_out
-      |h::t -> (if !i>1 then (i:=!i-1;j:=!j+1) else (i:= !i + !j+1;j:=1); vertex_sinks' t 
+      |h::t -> (if !i>1 then (i:=!i-1;j:=!j+1) else (i:= !j+1;j:=1); vertex_sinks' t 
       ({name=fst h;next_vertices=[];abscissa= !i;ordinate= !j; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf. white; edge_width = 1; edge_color = Graphicspdf.black}}::l_out))
   in
   let list_of_vertex = vertex_sinks' list_of_sinks [] in
   List.map (fun v-> (v.next_vertices<-[v];v)) list_of_vertex
 ;;
 
+(**fonction qui ajoute les noeuds oubliés*)
+let rec add_sinks list_of_sinks n list_of_vertex =
+  match list_of_sinks with
+    |[]   -> list_of_vertex
+    |(nom,nom')::t -> add_sinks t (n+1) ({name=nom;next_vertices=[];abscissa= n+1;ordinate= 1; draw = {vertex_shape = Rectangle; vertex_color = Graphicspdf. white; edge_width = 1; edge_color = Graphicspdf.black}}::list_of_vertex)
+;;
+
+(**fonction qui convertie une liste de lien en liste de vertices 
+   marche pour graphe cyclique*)
 let vertex_of_graph liste_lien =
   
    let vertex_of_graph'' liste_lien =
@@ -1103,23 +1111,29 @@ let vertex_of_graph liste_lien =
       )
   in
   
+  let rec add_son list_of_vertex nom =
+     let vertex= List.find (fun v->v.name=nom) list_of_vertex in
+     vertex.next_vertices <- vertex.next_vertices@[vertex]
+  in
+
   (*on sépare les noeuds qui boucles sur eux même *)
   let list1=List.partition (fun (a,b)->a<>b) liste_lien in 
-  let list2=snd list1 in
+  let list_sinks = snd list1 in
   let list1=fst list1 in
   
-  if list1 = [] then vertex_sinks list2 
+  if list1 = [] then vertex_sinks  list_sinks 
   else(
-      let list_of_vertex0 = vertex_of_graph'' list1 in
+      let list_of_vertex = ref (vertex_of_graph'' list1) in
 
-      let rec add_son list_of_vertex nom =
-        let vertex= List.find (fun v->v.name=nom) list_of_vertex in
-        vertex.next_vertices <- vertex.next_vertices@[vertex]
-      in
-
-      if list2=[]then()
-      else (List.hd (List.map (fun(nom,nom') -> add_son list_of_vertex0 nom) list2));
-      list_of_vertex0
+      if  list_sinks=[]then()
+      else (
+          let n = list_max (List.map (fun v->v.abscissa) (List.filter (fun v->v.ordinate=1)  !list_of_vertex) )in
+          let graph_sinks = List.filter (fun (a,b)-> not(List.exists (fun v->v.name=a)  !list_of_vertex))  list_sinks  in
+          list_of_vertex := add_sinks graph_sinks n !list_of_vertex;
+          
+          List.hd (List.map (fun(nom,nom') -> add_son !list_of_vertex nom)  list_sinks)
+          );
+      !list_of_vertex
       )
 ;;
 (**IV- c: Fonction de trie / creation finale **)
@@ -1131,10 +1145,10 @@ let graph_layout graphe=
    
     (*On recupère les noeuds qui pointent sur eux même*)
     let graph  = List.partition (fun (a,b)-> a<>b) graphe in
-    let graph0 = snd graph in
+    let list_sinks = snd graph in
     let graph  = fst graph in
     
-    if graph=[] then vertex_sinks graph0 
+    if graph=[] then vertex_sinks list_sinks 
     else(
     
     (*Supprimer les cycles et garder les flèches modifiées en mémoire*)
@@ -1174,7 +1188,15 @@ let graph_layout graphe=
     graph_w := if graph_b<>[] then (print_int 1;add_link_list graph_b !graph_w)
     else !graph_w;
     
-    add_link_list graph0 !graph_w
+    let n = list_max (List.map (fun v->v.abscissa) (List.filter (fun v->v.ordinate=1) !graph_w) )in
+    let graph_sinks = List.filter (fun (a,b)-> not(List.exists (fun v->v.name=a) !graph_w)) list_sinks in
+    graph_w:=add_sinks graph_sinks n !graph_w;
+    
+    add_link_list list_sinks !graph_w;
       )
     )
 ;;
+
+
+
+    
