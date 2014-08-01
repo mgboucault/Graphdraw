@@ -219,8 +219,8 @@ module Make (G : GRAPHIC) =
 						let vertex = List.find (fun v -> v.name = port.vertex_name) vertices in
 						let (x1, y1) = (h_vertex.abscissa, h_vertex.ordinate) in
 						let (x2, y2) = (vertex.abscissa, vertex.ordinate) in
-						let (w1, h1) = text_size h_vertex.name in
-						let (w2, h2) = text_size vertex.name in
+						let (w1, h1) = text_size (" "^h_vertex.name^" ") in
+						let (w2, h2) = text_size (" "^vertex.name^" ") in
 						(*on trace les ports selon leur position relative*)
 						match x1 < x2 with
 							|true ->
